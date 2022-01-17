@@ -28,10 +28,11 @@ func main() {
 	h := handler.NewHandler(database.Db)
 
 	e.GET("/wallet", h.GetAllWallet)
-	e.GET("/wallet/:walletId", h.GetWallet)
 	e.POST("/wallet/", h.CreateWallet)
-	e.PUT("/wallet/deposit", h.DepositWallet)
-	e.PUT("/wallet/transfer", h.TransferWallet)
+	e.PUT("/wallet/", h.TransferWallet)
+	e.GET("/wallet/:walletId", h.GetWallet)
+	e.PUT("/wallet/:walletId", h.DepositWallet)
+	e.DELETE("/wallet/:walletId", h.DeleteWallet)
 
 	// Start server
 	e.Logger.Fatal(e.Start(":1323"))

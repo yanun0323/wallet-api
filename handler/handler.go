@@ -15,10 +15,7 @@ type IHandler interface {
 	GetWallet(c echo.Context) error
 	DepositWallet(c echo.Context) error
 	TransferWallet(c echo.Context) error
-}
-
-type Handler struct {
-	db *gorm.DB
+	DeleteWallet(c echo.Context) error
 }
 
 func NewHandler(db *gorm.DB) Handler {
@@ -27,9 +24,16 @@ func NewHandler(db *gorm.DB) Handler {
 	return h
 }
 
+type Handler struct {
+	db *gorm.DB
+}
+
 func (h *Handler) GetAllWallet(c echo.Context) error {
 	result := []model.Wallet{}
 	h.db.Table("wallets").Find(&result)
+	if result == nil {
+		return c.JSON(http.StatusNotFound, nil)
+	}
 	return c.JSON(http.StatusOK, result)
 }
 
@@ -37,66 +41,67 @@ func (h *Handler) GetWallet(c echo.Context) error {
 	id := c.Param("walletId")
 	w := &model.Wallet{}
 	if h.db.First(w, id).Error != nil {
-		return c.JSON(http.StatusOK, "user does not exit!")
+		return c.JSON(http.StatusNotFound, "Can't find wallet.")
 	}
 	return c.JSON(http.StatusOK, *w)
 }
 
 func (h *Handler) CreateWallet(c echo.Context) error {
 	u := &model.Wallet{}
-
-	if err := c.Bind(u); err != nil {
-		return err
+	w := &model.Wallet{}
+	if c.Bind(u) != nil {
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 
-	if h.db.First(&model.Wallet{}, u.ID).Error == nil {
-		return c.JSON(http.StatusOK, "user already exit!")
+	if h.db.First(w, u.ID).Error == nil {
+		return c.JSON(http.StatusConflict, "Wallet does already exist.")
 	}
 
-	if err := h.db.Create(u).Error; err != nil {
-		return err
+	if h.db.Create(u).Error != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
 	}
 
-	return c.JSON(http.StatusOK, "Succeesed")
+	return c.JSON(http.StatusCreated, *w)
 }
 
 func (h *Handler) DepositWallet(c echo.Context) error {
-	u := new(model.Deposit)
-	if err := c.Bind(u); err != nil {
-		return err
+	id := c.Param("walletId")
+	m := new(model.Deposit)
+	if c.Bind(m) != nil {
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 	w := &model.Wallet{}
-	if h.db.First(w, u.ID).Error != nil {
-		return c.JSON(http.StatusOK, "user does not exit!")
+	if h.db.First(w, id).Error != nil {
+		return c.JSON(http.StatusNotFound, "Can't find wallet.")
 	}
 
-	if u.Amount.IsNegative() {
-		return c.JSON(http.StatusOK, "amount can't be negative!")
+	if m.Amount.IsNegative() {
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 
-	w.Balance = w.Balance.Add(u.Amount)
+	w.Balance = w.Balance.Add(m.Amount)
 	h.db.Save(w)
 	return c.JSON(http.StatusOK, *w)
 }
 
 func (h *Handler) TransferWallet(c echo.Context) error {
 	u := new(model.Transfer)
-	if err := c.Bind(u); err != nil {
-		return err
+	if c.Bind(u) != nil {
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 
 	wFrom := &model.Wallet{}
 	wTo := &model.Wallet{}
 
 	if !isIdExist(u.FromID, wFrom, h.db) || !isIdExist(u.ToID, wTo, h.db) {
-		return c.JSON(http.StatusOK, "user does not exit!")
+		return c.JSON(http.StatusNotFound, "Can't find wallet.")
 	}
 
 	if !isWalletBalanceEnough(wFrom, u.Amount) {
-		return c.JSON(http.StatusOK, "user balance is not enough!")
+		return c.JSON(http.StatusBadRequest, nil)
 	}
 
-	h.db.Transaction(func(tx *gorm.DB) error {
+	err := h.db.Transaction(func(tx *gorm.DB) error {
 		wFrom.Balance = wFrom.Balance.Sub(u.Amount)
 		wTo.Balance = wTo.Balance.Add(u.Amount)
 
@@ -109,7 +114,24 @@ func (h *Handler) TransferWallet(c echo.Context) error {
 		return nil
 	})
 
-	return c.JSON(http.StatusOK, *wFrom)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	return c.JSON(http.StatusCreated, *wFrom)
+}
+
+func (h *Handler) DeleteWallet(c echo.Context) error {
+	id := c.Param("walletId")
+	w := &model.Wallet{}
+	if h.db.First(w, id).Error != nil {
+		return c.JSON(http.StatusNotFound, "Can't find wallet.")
+	}
+	if h.db.Delete(w).Error != nil {
+		return c.JSON(http.StatusInternalServerError, nil)
+	}
+
+	return c.JSON(http.StatusNoContent, nil)
 }
 
 func isIdExist(id string, w *model.Wallet, db *gorm.DB) bool {
