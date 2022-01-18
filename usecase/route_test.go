@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"testing"
+	"wallet-api/domain"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSomething(t *testing.T) {
-
-	assert.True(t, true, "True is true!")
-
+func TestNewRoute(t *testing.T) {
+	n := new(domain.IRepository)
+	r := NewRoute(*n)
+	assert.NotNil(t, r)
+	assert.NotNil(t, r.CreateWallet)
 }
