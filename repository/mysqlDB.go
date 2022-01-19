@@ -6,32 +6,32 @@ import (
 	"gorm.io/gorm"
 )
 
-type mysqlDB struct {
+type MysqlDB struct {
 	db *gorm.DB
 }
 
 func NewMysql(db *gorm.DB) domain.IRepository {
-	return &mysqlDB{db}
+	return &MysqlDB{db}
 }
 
-func (m *mysqlDB) GetAll() (*[]domain.Wallet, error) {
+func (m *MysqlDB) GetAll() (*[]domain.Wallet, error) {
 	result := []domain.Wallet{}
 	err := m.db.Table("wallets").Find(&result).Error
 	return &result, err
 }
 
-func (m *mysqlDB) Get(id string) (*domain.Wallet, error) {
+func (m *MysqlDB) Get(id string) (*domain.Wallet, error) {
 	w := &domain.Wallet{}
 	err := m.db.First(w, id).Error
 	return w, err
 }
 
-func (m *mysqlDB) Create(w *domain.Wallet) error {
+func (m *MysqlDB) Create(w *domain.Wallet) error {
 	err := m.db.Create(w).Error
 	return err
 }
 
-func (m *mysqlDB) Update(ws ...*domain.Wallet) error {
+func (m *MysqlDB) Update(ws ...*domain.Wallet) error {
 
 	return m.db.Transaction(func(tx *gorm.DB) error {
 		for _, w := range ws {
@@ -44,7 +44,7 @@ func (m *mysqlDB) Update(ws ...*domain.Wallet) error {
 	})
 }
 
-func (m *mysqlDB) Delete(id string) error {
+func (m *MysqlDB) Delete(id string) error {
 	w := &domain.Wallet{}
 	if err := m.db.First(w, id).Error; err != nil {
 		return err

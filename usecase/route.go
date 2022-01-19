@@ -51,7 +51,10 @@ func (h *Route) CreateWallet(c echo.Context) error {
 func (h *Route) DepositWallet(c echo.Context) error {
 	id := c.Param("walletId")
 	d := new(domain.Deposit)
-	if c.Bind(d) != nil || d.Amount.IsNegative() {
+	if c.Bind(d) != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if !d.Amount.IsPositive() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 
@@ -71,6 +74,9 @@ func (h *Route) DepositWallet(c echo.Context) error {
 func (h *Route) TransferWallet(c echo.Context) error {
 	t := new(domain.Transfer)
 	if c.Bind(t) != nil {
+		return c.JSON(http.StatusBadRequest, nil)
+	}
+	if !t.Amount.IsPositive() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 
