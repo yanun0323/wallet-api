@@ -21,7 +21,7 @@ Frameworks
 Available Services
 ---
 * starts a server on localhost port 1323 (by default). 
-http://localhost:1323
+* http://localhost:1323
 
 |  Method  | Path                |    Usage                         |
 | -------- | ------------------- | -------------------------------- |
