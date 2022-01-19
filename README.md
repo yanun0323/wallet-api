@@ -10,11 +10,11 @@ Go 1.17.6 or higher
 Frameworks
 ---
 * REST Service
-    * ++[echo](https://echo.labstack.com/guide/)++
+    * [echo](https://echo.labstack.com/guide/)
 * Database
-    * ++[GORM](https://gorm.io/docs/index.html)++ ( use SQLite ) 
+    * [GORM](https://gorm.io/docs/index.html) ( use SQLite ) 
 * Test
-    * ++[testify](https://github.com/stretchr/testify/blob/master/assert/assertions_test.go)++
+    * [testify](https://github.com/stretchr/testify/blob/master/assert/assertions_test.go)
 
 
 
