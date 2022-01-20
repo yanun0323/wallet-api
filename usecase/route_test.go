@@ -291,6 +291,28 @@ func Test_DeleteWallet(t *testing.T) {
 	}
 }
 
+func Test_isWalletBalanceEnough(t *testing.T) {
+	assert := assert.New(t)
+
+	var tests = []struct {
+		input1   *domain.Wallet
+		input2   decimal.Decimal
+		expected bool
+	}{
+		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(0)}, input2: decimal.NewFromInt32(0), expected: true},
+		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(100)}, input2: decimal.NewFromInt32(100), expected: true},
+		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(100)}, input2: decimal.NewFromInt32(50), expected: true},
+		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(0)}, input2: decimal.NewFromInt32(50), expected: false},
+		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(50)}, input2: decimal.NewFromInt32(100), expected: false},
+	}
+
+	for _, test := range tests {
+		assert.Equal(isWalletBalanceEnough(test.input1, test.input2), test.expected)
+	}
+}
+
+//Mock Test
+
 type MockRoute struct {
 	mock.Mock
 }
@@ -371,24 +393,4 @@ func MockTest_DeleteWallet(t *testing.T) {
 	mockRoute.On("DeleteWallet", c).Return(nil)
 	mockRoute.DeleteWallet(c)
 	mockRoute.AssertExpectations(t)
-}
-
-func Test_isWalletBalanceEnough(t *testing.T) {
-	assert := assert.New(t)
-
-	var tests = []struct {
-		input1   *domain.Wallet
-		input2   decimal.Decimal
-		expected bool
-	}{
-		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(0)}, input2: decimal.NewFromInt32(0), expected: true},
-		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(100)}, input2: decimal.NewFromInt32(100), expected: true},
-		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(100)}, input2: decimal.NewFromInt32(50), expected: true},
-		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(0)}, input2: decimal.NewFromInt32(50), expected: false},
-		{input1: &domain.Wallet{ID: "123456789", Balance: decimal.NewFromInt32(50)}, input2: decimal.NewFromInt32(100), expected: false},
-	}
-
-	for _, test := range tests {
-		assert.Equal(isWalletBalanceEnough(test.input1, test.input2), test.expected)
-	}
 }
