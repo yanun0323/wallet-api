@@ -1,12 +1,12 @@
 package main
 
 import (
+	"net/http"
 	"wallet-api/delivery"
 	"wallet-api/domain"
 	"wallet-api/repository"
 	"wallet-api/usecase"
 
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/labstack/echo/v4"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -30,7 +30,11 @@ func main() {
 	usecase := usecase.NewRoute(repo)
 	delivery.NewHandler(e, usecase)
 
+	e.GET("/", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, "Hello Bing Chilling.")
+	})
+
 	// Start server
-	e.Logger.Fatal(e.Start(":1323"))
+	e.Logger.Fatal(e.Start(":8080"))
 
 }

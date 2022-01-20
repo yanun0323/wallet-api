@@ -20,8 +20,8 @@ Frameworks
 
 Available Services
 ---
-* starts a server on localhost port 1323 (by default). 
-* http://localhost:1323
+* starts a server on localhost port 8080 (by default). 
+* http://localhost:8080
 
 |  Method  | Path                |    Usage                         |
 | -------- | ------------------- | -------------------------------- |
@@ -59,7 +59,7 @@ Sample JSON for Account
     `/wallet `
     ```
     {
-      "walletId": "4123567891234567",
+      "walletId": "123456789",
       "balance": 100.00
     }
     ```
@@ -74,8 +74,8 @@ Sample JSON for Account
     `/wallet ` 
     ```
     {
-      "walletFromId": "4123567891234567",
-      "walletToId": "4123567891234333",
+      "walletFromId": "123456789",
+      "walletToId": "987654321",
       "amount": 100.00
     }
     ```

@@ -3,13 +3,12 @@ module wallet-api
 go 1.17
 
 require (
-	github.com/joho/godotenv v1.4.0
 	github.com/labstack/echo/v4 v4.6.3
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/mattn/go-sqlite3 v1.14.9 // indirect
+	github.com/mattn/go-sqlite3 v1.14.10 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
