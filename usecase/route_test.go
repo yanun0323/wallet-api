@@ -70,15 +70,18 @@ func Test_GetAllWallet(t *testing.T) {
 	c.SetPath("/wallet")
 
 	expected := "[]\n"
-	empty := provideEmptyDBIRoute(t)
-	if assert.NoError(t, empty.GetAllWallet(c)) {
+	route := provideEmptyDBIRoute(t)
+	if assert.NoError(t, route.GetAllWallet(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, expected, rec.Body.String())
 	}
+
 	rec = httptest.NewRecorder()
+	c = e.NewContext(req, rec)
+	c.SetPath("/wallet")
 	expected = "[{\"walletId\":\"123456789\",\"balance\":\"100\"},{\"walletId\":\"987654321\",\"balance\":\"100\"}]\n"
-	filled := provideDBIRoute(t)
-	if assert.NoError(t, filled.GetAllWallet(c)) {
+	route = provideDBIRoute(t)
+	if assert.NoError(t, route.GetAllWallet(c)) {
 		assert.Equal(t, http.StatusOK, rec.Code)
 		assert.Equal(t, expected, rec.Body.String())
 	}
