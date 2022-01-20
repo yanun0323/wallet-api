@@ -28,7 +28,7 @@ Available Services
 | GET      | /wallet             | get all wallets                  |
 | GET      | /wallet/{walletId}  | get wallet by walletId           |
 | POST     | /wallet             | create a new wallet              |
-| PUT      | /wallet/{walletId}  | deposite money in wallet         |
+| PUT      | /wallet/{walletId}  | deposit money in wallet         |
 | PUT      | /wallet             | transfer money between 2 wallets |
 | DELETE   | /wallet/{walletId}  | delete wallet by walletId        |
 
@@ -36,7 +36,7 @@ Available Services
 Http Status
 ---
 * 200 OK: The request has succeeded
-* 201 Created: The resourse has created
+* 201 Created: The resource has created
 * 400 Bad Request: The request could not be understood by the server
 * 404 Not Found: The requested resource cannot be found
 * 500 Internal Server Error: The server encountered an unexpected condition
@@ -63,7 +63,7 @@ Sample JSON for Account
       "balance": 100.00
     }
     ```
-* ### PUT : deposite money in wallet
+* ### PUT : deposit money in wallet
     `/wallet/{walletId} ` 
     ```
     {

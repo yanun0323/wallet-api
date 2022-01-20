@@ -28,6 +28,9 @@ func (h *Route) GetAllWallet(c echo.Context) error {
 
 func (h *Route) GetWallet(c echo.Context) error {
 	id := c.Param("walletId")
+	if id == "" {
+		return c.JSON(http.StatusNotFound, "WalletId can't be empty.")
+	}
 	wallet, err := h.repo.Get(id)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, "Can't find wallet.")
@@ -37,7 +40,7 @@ func (h *Route) GetWallet(c echo.Context) error {
 
 func (h *Route) CreateWallet(c echo.Context) error {
 	w := &domain.Wallet{}
-	if c.Bind(w) != nil {
+	if c.Bind(w) != nil || w.ID == "" {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 	err := h.repo.Create(w)
@@ -51,10 +54,7 @@ func (h *Route) CreateWallet(c echo.Context) error {
 func (h *Route) DepositWallet(c echo.Context) error {
 	id := c.Param("walletId")
 	d := new(domain.Deposit)
-	if c.Bind(d) != nil {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-	if !d.Amount.IsPositive() {
+	if c.Bind(d) != nil || !d.Amount.IsPositive() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 
@@ -64,8 +64,7 @@ func (h *Route) DepositWallet(c echo.Context) error {
 	}
 
 	w.Balance = w.Balance.Add(d.Amount)
-	err2 := h.repo.Update(w)
-	if err2 != nil {
+	if h.repo.Update(w) != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
 	return c.JSON(http.StatusOK, *w)

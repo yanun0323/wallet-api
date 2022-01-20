@@ -6,15 +6,7 @@ import (
 
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
-	"gorm.io/gorm"
 )
-
-type Suite struct {
-	suite.Suite
-	DB     *gorm.DB
-	wallet *domain.Wallet
-}
 
 type MockMysqlDB struct {
 	mock.Mock
