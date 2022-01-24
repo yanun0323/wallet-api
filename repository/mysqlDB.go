@@ -4,6 +4,7 @@ import (
 	"wallet-api/domain"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MysqlDB struct {
@@ -26,6 +27,13 @@ func (m *MysqlDB) Get(id string) (*domain.Wallet, error) {
 	return w, err
 }
 
+//.Clauses(clause.Locking{Strength: "UPDATE"})
+func (m *MysqlDB) GetForUpdate(id string) (*domain.Wallet, error) {
+	w := &domain.Wallet{}
+	err := m.db.Clauses(clause.Locking{Strength: "UPDATE"}).First(w, id).Error
+	return w, err
+}
+
 func (m *MysqlDB) Create(w *domain.Wallet) error {
 	err := m.db.Create(w).Error
 	return err
@@ -35,7 +43,7 @@ func (m *MysqlDB) Update(ws ...*domain.Wallet) error {
 
 	return m.db.Transaction(func(tx *gorm.DB) error {
 		for _, w := range ws {
-			err := m.db.Save(w).Error
+			err := tx.Save(w).Error
 			if err != nil {
 				return err
 			}
