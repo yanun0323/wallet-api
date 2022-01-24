@@ -25,8 +25,12 @@ func (m *MockMysqlDB) Create(w *domain.Wallet) error {
 	args := m.Called(w)
 	return args.Error(0)
 }
-func (m *MockMysqlDB) Update(ws ...*domain.Wallet) error {
-	args := m.Called(ws)
+func (m *MockMysqlDB) Deposit(id string, amount decimal.Decimal) error {
+	args := m.Called(id, amount)
+	return args.Error(0)
+}
+func (m *MockMysqlDB) Transfer(t *domain.Transfer) error {
+	args := m.Called(t)
 	return args.Error(0)
 }
 func (m *MockMysqlDB) Delete(id string) error {
@@ -62,16 +66,13 @@ func Test_Create(t *testing.T) {
 	mysqlDB.AssertExpectations(t)
 }
 
-func Test_Update(t *testing.T) {
+func Test_Deposit(t *testing.T) {
 	mysqlDB := new(MockMysqlDB)
 
-	w := &domain.Wallet{
-		ID:      "123456789",
-		Balance: decimal.NewFromInt32(100),
-	}
-	expected := []*domain.Wallet{w}
-	mysqlDB.On("Update", expected).Return(nil)
-	mysqlDB.Update(w)
+	id := "123456789"
+	amount := decimal.NewFromInt32(100)
+	mysqlDB.On("Deposit", id, amount).Return(nil)
+	mysqlDB.Deposit(id, amount)
 
 	mysqlDB.AssertExpectations(t)
 }
@@ -79,17 +80,13 @@ func Test_Update(t *testing.T) {
 func Test_Update_TwoWallets(t *testing.T) {
 	mysqlDB := new(MockMysqlDB)
 
-	w1 := &domain.Wallet{
-		ID:      "123456789",
-		Balance: decimal.NewFromInt32(100),
+	tr := &domain.Transfer{
+		FromID: "123456789",
+		ToID:   "987654321",
+		Amount: decimal.NewFromInt32(100),
 	}
-	w2 := &domain.Wallet{
-		ID:      "987654321",
-		Balance: decimal.New(100, 0),
-	}
-	expected := []*domain.Wallet{w1, w2}
-	mysqlDB.On("Update", expected).Return(nil)
-	mysqlDB.Update(w1, w2)
+	mysqlDB.On("Transfer", tr).Return(nil)
+	mysqlDB.Transfer(tr)
 
 	mysqlDB.AssertExpectations(t)
 }

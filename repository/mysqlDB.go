@@ -28,13 +28,6 @@ func (m *MysqlDB) Get(id string) (*domain.Wallet, error) {
 	return w, err
 }
 
-//.Clauses(clause.Locking{Strength: "UPDATE"})
-func GetForUpdate(tx *gorm.DB, id string) (*domain.Wallet, error) {
-	w := &domain.Wallet{}
-	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(w, id).Error
-	return w, err
-}
-
 func (m *MysqlDB) Create(w *domain.Wallet) error {
 	return m.db.Transaction(func(tx *gorm.DB) error {
 		//got, err := GetForUpdate(tx, w.ID)
