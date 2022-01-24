@@ -26,7 +26,9 @@ type IRepository interface {
 	GetAll() (*[]Wallet, error)
 	Get(id string) (*Wallet, error)
 	Create(w *Wallet) error
-	Update(w ...*Wallet) error
+	Deposit(id string, amount decimal.Decimal) error
+	Transfer(t *Transfer) error
+	//Update(w ...*Wallet) error
 	Delete(id string) error
 }
 

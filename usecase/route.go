@@ -58,16 +58,10 @@ func (h *Route) DepositWallet(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
 
-	w, err := h.repo.Get(id)
-	if err != nil {
-		return c.JSON(http.StatusNotFound, "Can't find wallet.")
-	}
-
-	w.Balance = w.Balance.Add(d.Amount)
-	if h.repo.Update(w) != nil {
+	if h.repo.Deposit(id, d.Amount) != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-	return c.JSON(http.StatusOK, *w)
+	return c.JSON(http.StatusOK, nil)
 }
 
 func (h *Route) TransferWallet(c echo.Context) error {
@@ -78,27 +72,11 @@ func (h *Route) TransferWallet(c echo.Context) error {
 	if !t.Amount.IsPositive() {
 		return c.JSON(http.StatusBadRequest, nil)
 	}
-
-	wFrom, err := h.repo.Get(t.FromID)
-	wTo, err2 := h.repo.Get(t.ToID)
-	if err != nil || err2 != nil {
-		return c.JSON(http.StatusNotFound, "Can't find wallet.")
-	}
-
-	if !isWalletBalanceEnough(wFrom, t.Amount) {
-		return c.JSON(http.StatusBadRequest, nil)
-	}
-
-	wFrom.Balance = wFrom.Balance.Sub(t.Amount)
-	wTo.Balance = wTo.Balance.Add(t.Amount)
-
-	err3 := h.repo.Update(wFrom, wTo)
-
-	if err3 != nil {
+	err := h.repo.Transfer(t)
+	if err != nil {
 		return c.JSON(http.StatusInternalServerError, nil)
 	}
-
-	return c.JSON(http.StatusCreated, *wFrom)
+	return c.JSON(http.StatusCreated, nil)
 }
 
 func (h *Route) DeleteWallet(c echo.Context) error {
