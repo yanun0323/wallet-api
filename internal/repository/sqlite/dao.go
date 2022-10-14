@@ -62,7 +62,7 @@ func (dao *SqliteDao) DepositWallet(walletID string, amount decimal.Decimal) (*m
 		}
 
 		w.Balance = w.Balance.Add(amount)
-		if err := dao.db.Save(w).Error; err != nil {
+		if err := dao.db.Where("wallet_id=?", w.WalletID).Save(w).Error; err != nil {
 			return err
 		}
 		return nil
@@ -107,11 +107,11 @@ func (dao *SqliteDao) TransferWallet(fromWalletID, toWalletID string, amount dec
 		from.Balance.Sub(amount)
 		to.Balance.Add(amount)
 
-		if err := dao.db.Save(from).Error; err != nil {
+		if err := dao.db.Where("wallet_id=?", from.WalletID).Save(from).Error; err != nil {
 			return err
 		}
 
-		if err := dao.db.Save(to).Error; err != nil {
+		if err := dao.db.Where("wallet_id=?", to.WalletID).Save(to).Error; err != nil {
 			return err
 		}
 

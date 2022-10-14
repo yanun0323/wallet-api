@@ -19,7 +19,7 @@ func (svc *Service) GetAllWallet(c echo.Context) error {
 }
 
 func (svc *Service) GetWallet(c echo.Context) error {
-	id := c.Param("walletID")
+	id := c.Param("WALLET_ID")
 	if len(id) == 0 {
 		svc.l.Warn("get wallet error, empty wallet ID")
 		return c.JSON(http.StatusNotFound, util.Msg("empty wallet ID."))
@@ -51,7 +51,7 @@ func (svc *Service) CreateWallet(c echo.Context) error {
 }
 
 func (svc *Service) DepositWallet(c echo.Context) error {
-	id := c.Param("walletId")
+	id := c.Param("WALLET_ID")
 	if len(id) == 0 {
 		svc.l.Warn("deposit wallet error, empty wallet ID")
 		return c.JSON(http.StatusNotFound, util.Msg("empty wallet ID."))
@@ -93,7 +93,7 @@ func (svc *Service) TransferWallet(c echo.Context) error {
 }
 
 func (svc *Service) DeleteWallet(c echo.Context) error {
-	id := c.Param("walletId")
+	id := c.Param("WALLET_ID")
 	if len(id) == 0 {
 		svc.l.Warn("delete wallet error, empty wallet ID")
 		return c.JSON(http.StatusNotFound, util.Msg("empty wallet ID."))
