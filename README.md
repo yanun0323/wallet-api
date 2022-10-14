@@ -5,7 +5,7 @@ RESTful API for money transfers between wallet.
 
 Requirements:
 ---
-Go 1.17.6 or higher
+Go 1.17 or higher
 
 Frameworks
 ---
@@ -35,11 +35,11 @@ Available Services
 
 Http Status
 ---
-* 200 OK: The request has succeeded
-* 201 Created: The resource has created
-* 400 Bad Request: The request could not be understood by the server
-* 404 Not Found: The requested resource cannot be found
-* 500 Internal Server Error: The server encountered an unexpected condition
+* `200` OK: The request has succeeded
+* `201` Created: The resource has created
+* `400` Bad Request: The request could not be understood by the server
+* `404` Not Found: The requested resource cannot be found
+* `500` Internal Server Error: The server encountered an unexpected condition
 
 Sample JSON for Account
 ---
@@ -59,7 +59,7 @@ Sample JSON for Account
     `/wallet `
     ```
     {
-      "walletId": "123456789",
+      "wallet_id": "123456789",
       "balance": 100.00
     }
     ```
@@ -74,8 +74,8 @@ Sample JSON for Account
     `/wallet ` 
     ```
     {
-      "walletFromId": "123456789",
-      "walletToId": "987654321",
+      "from_wallet_id": "123456789",
+      "to_wallet_id": "987654321",
       "amount": 100.00
     }
     ```

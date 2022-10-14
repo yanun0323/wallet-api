@@ -1,0 +1,2 @@
+sqlite:
+  db: "wallets.db"
