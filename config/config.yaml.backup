@@ -1,2 +1,3 @@
 sqlite:
   db: "wallets.db"
+  debug: true

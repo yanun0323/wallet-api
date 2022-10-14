@@ -3,9 +3,11 @@ package service
 import (
 	"net/http"
 	"wallet-api/internal/model"
+	"wallet-api/internal/repository/sqlite"
 	"wallet-api/internal/util"
 
 	"github.com/labstack/echo/v4"
+	"github.com/pkg/errors"
 )
 
 func (svc *Service) GetAllWallet(c echo.Context) error {
@@ -40,7 +42,13 @@ func (svc *Service) CreateWallet(c echo.Context) error {
 		svc.l.Warn("create wallet error, bad request")
 		return c.JSON(http.StatusBadRequest, util.Msg("bad request."))
 	}
+
 	err := svc.repo.CreateWallet(w)
+	if errors.Is(err, sqlite.ErrWalletExist) {
+		svc.l.Errorf("create wallet error, %+v", err)
+		return c.JSON(echo.ErrInternalServerError.Code, util.Msg("wallet already exist."))
+	}
+
 	if err != nil {
 		svc.l.Errorf("create wallet error, %+v", err)
 		return c.JSON(echo.ErrInternalServerError.Code, util.Msg("unknown error."))
@@ -82,7 +90,13 @@ func (svc *Service) TransferWallet(c echo.Context) error {
 		svc.l.Warn("transfer amount is less than zero")
 		return c.JSON(http.StatusBadRequest, util.Msg("amount must be greater than zero."))
 	}
+
 	fromWallet, err := svc.repo.TransferWallet(t.FromWalletID, t.ToWalletID, t.Amount)
+	if errors.Is(err, sqlite.ErrBalanceNotEnough) {
+		svc.l.Errorf("transfer wallet error, %+v", err)
+		return c.JSON(http.StatusInternalServerError, util.Msg("balance is not enough."))
+	}
+
 	if err != nil {
 		svc.l.Errorf("transfer wallet error, %+v", err)
 		return c.JSON(http.StatusInternalServerError, util.Msg("unknown error."))
@@ -98,10 +112,16 @@ func (svc *Service) DeleteWallet(c echo.Context) error {
 		svc.l.Warn("delete wallet error, empty wallet ID")
 		return c.JSON(http.StatusNotFound, util.Msg("empty wallet ID."))
 	}
+
 	err := svc.repo.DeleteWallet(id)
-	if err != nil {
+	if errors.Is(err, sqlite.ErrWalletNotExist) {
 		svc.l.Errorf("delete wallet error, %+v", err)
 		return c.JSON(http.StatusNotFound, util.Msg("can't find wallet."))
+	}
+
+	if err != nil {
+		svc.l.Errorf("delete wallet error, %+v", err)
+		return c.JSON(http.StatusNotFound, util.Msg("unknown error."))
 	}
 
 	svc.l.Infof("successfully delete wallet: %s", id)

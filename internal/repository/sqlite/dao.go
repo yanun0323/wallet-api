@@ -1,14 +1,22 @@
 package sqlite
 
 import (
+	"database/sql"
 	"fmt"
 	"wallet-api/internal/model"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
 	"github.com/shopspring/decimal"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+)
+
+var (
+	ErrBalanceNotEnough = fmt.Errorf("balance not enough")
+	ErrWalletExist      = fmt.Errorf("wallet already exist")
+	ErrWalletNotExist   = fmt.Errorf("can't find wallet")
 )
 
 type SqliteDao struct {
@@ -25,7 +33,9 @@ func NewSqliteDao(db string) (*SqliteDao, error) {
 		db: client,
 	}
 	dao.Init()
-
+	if viper.GetBool("sqlite.debug") {
+		dao.db = dao.db.Debug()
+	}
 	return dao, nil
 }
 
@@ -34,7 +44,19 @@ func (dao *SqliteDao) Init() {
 }
 
 func (dao *SqliteDao) CreateWallet(wallet *model.Wallet) error {
-	return dao.db.Create(wallet).Error
+	return dao.db.Transaction(func(tx *gorm.DB) error {
+		var count int64
+		err := tx.Table(wallet.TableName()).Where("wallet_id=?", wallet.WalletID).Count(&count).Error
+		if errors.Is(err, sql.ErrNoRows) || count == 0 {
+			return tx.Create(wallet).Error
+		}
+
+		if err != nil {
+			return err
+		}
+
+		return ErrWalletExist
+	})
 }
 
 func (dao *SqliteDao) GetAllWallet() ([]model.Wallet, error) {
@@ -57,12 +79,12 @@ func (dao *SqliteDao) GetWallet(walletID string) (*model.Wallet, error) {
 func (dao *SqliteDao) DepositWallet(walletID string, amount decimal.Decimal) (*model.Wallet, error) {
 	w := &model.Wallet{}
 	err := dao.db.Transaction(func(tx *gorm.DB) error {
-		if err := dao.db.Where("wallet_id=?", walletID).First(w).Error; err != nil {
+		if err := tx.Where("wallet_id=?", walletID).First(w).Error; err != nil {
 			return err
 		}
 
 		w.Balance = w.Balance.Add(amount)
-		if err := dao.db.Where("wallet_id=?", w.WalletID).Save(w).Error; err != nil {
+		if err := tx.Where("wallet_id=?", w.WalletID).Save(w).Error; err != nil {
 			return err
 		}
 		return nil
@@ -78,7 +100,7 @@ func (dao *SqliteDao) TransferWallet(fromWalletID, toWalletID string, amount dec
 	var from, to *model.Wallet
 	err := dao.db.Transaction(func(tx *gorm.DB) error {
 		wallets := []model.Wallet{}
-		err := dao.db.Where("wallet_id IN(?)", []string{fromWalletID, toWalletID}).Find(&wallets).Error
+		err := tx.Where("wallet_id IN(?)", []string{fromWalletID, toWalletID}).Find(&wallets).Error
 		if err != nil {
 			return err
 		}
@@ -93,25 +115,25 @@ func (dao *SqliteDao) TransferWallet(fromWalletID, toWalletID string, amount dec
 		}
 
 		if from == nil {
-			return errors.New(fmt.Sprintf("can't find wallet id, %s", fromWalletID))
+			return fmt.Errorf("can't find wallet id %s", fromWalletID)
 		}
 
 		if to == nil {
-			return errors.New(fmt.Sprintf("can't find wallet id, %s", toWalletID))
+			return fmt.Errorf("can't find wallet id %s", toWalletID)
 		}
 
 		if from.Balance.LessThan(amount) {
-			return errors.New("balance not enough")
+			return ErrBalanceNotEnough
 		}
 
-		from.Balance.Sub(amount)
-		to.Balance.Add(amount)
+		from.Balance = from.Balance.Sub(amount)
+		to.Balance = to.Balance.Add(amount)
 
-		if err := dao.db.Where("wallet_id=?", from.WalletID).Save(from).Error; err != nil {
+		if err := tx.Where("wallet_id=?", from.WalletID).Save(from).Error; err != nil {
 			return err
 		}
 
-		if err := dao.db.Where("wallet_id=?", to.WalletID).Save(to).Error; err != nil {
+		if err := tx.Where("wallet_id=?", to.WalletID).Save(to).Error; err != nil {
 			return err
 		}
 
@@ -125,5 +147,17 @@ func (dao *SqliteDao) TransferWallet(fromWalletID, toWalletID string, amount dec
 }
 
 func (dao *SqliteDao) DeleteWallet(walletID string) error {
-	return dao.db.Where("wallet_id=?", walletID).Delete(&model.Wallet{}).Error
+	return dao.db.Transaction(func(tx *gorm.DB) error {
+		var count int64
+		err := tx.Table(model.Wallet{}.TableName()).Where("wallet_id=?", walletID).Count(&count).Error
+		if errors.Is(err, sql.ErrNoRows) || count == 0 {
+			return ErrWalletNotExist
+		}
+
+		if err != nil {
+			return err
+		}
+
+		return tx.Where("wallet_id=?", walletID).Delete(&model.Wallet{}).Error
+	})
 }

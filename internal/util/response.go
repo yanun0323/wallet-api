@@ -1,11 +1,11 @@
 package util
 
-type response struct {
-	message string
+type Response struct {
+	Message string `json:"message"`
 }
 
-func Msg(msg string) any {
-	return response{
-		message: msg,
+func Msg(msg string) Response {
+	return Response{
+		Message: msg,
 	}
 }
